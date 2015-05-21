@@ -257,15 +257,10 @@ SectionGroup "!Dependencies (Advanced)"
 			${Else}
 				File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x86.dll"
 			${EndIf}
+		${Else}
+				File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.${ARCH}.dll"		
 		${EndIf}
 		
-		${If} "${ARCH}" == "x64"	
-				File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x64.dll"				
-		${EndIf}
-		
-		${If} "${ARCH}" == "x86"	
-				File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x86.dll"				
-		${EndIf}
 		; Don't work ...
 		;RegDLL "$INSTDIR\Pre-requisites\XySubFilter.dll"
 		ExecWait '"$SYSDIR\regsvr32.exe" /s "$INSTDIR\Pre-requisites\XySubFilter.dll"' 
@@ -363,7 +358,7 @@ Section -post
 	WriteUninstaller "$INSTDIR\Uninstall.exe"
 
 	; Show up in Add/Remove programs
-	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "DisplayName" "${PROJECT_NAME} ${VERSION_STRING} ${SPECIAL_BUILD}"
+	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "DisplayName" "${PROJECT_NAME} ${ARCH} ${VERSION_STRING} ${SPECIAL_BUILD}"
 	WriteRegExpandStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "UninstallString" "$INSTDIR\Uninstall.exe"
 	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "DisplayIcon" "$INSTDIR\icon.ico"
 	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "DisplayVersion" "${VERSION_STRING}"
