@@ -40,6 +40,14 @@ SetCompressor lzma
 !insertmacro GetParameters
 !insertmacro GetOptions
 
+; Move Files and folder
+; Used to move the Extensions
+!include 'FileFunc.nsh'
+!insertmacro Locate
+ 
+Var /GLOBAL switch_overwrite
+!include 'MoveFileFolder.nsh'
+
 
 ;--------------------------------
 ;Configuration
@@ -219,8 +227,9 @@ Section /o "${PROJECT_NAME} Extensions" SecExtensions
 	RMDir /r "$INSTDIR\Extensions"
 	
 	SetOutPath "$TEMP"
-	File "/oname=Mpdn_Extensions.zip" "MPDN\Extensions.zip"
-	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn_Extensions.zip" "$INSTDIR" "MPDN_Extensions-master\Extensions"
+	File "/oname=Mpdn_Extensions.zip" "MPDN\MPDN_Extensions-master.zip"
+	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn_Extensions.zip" "$TEMP" "<ALL>"
+	!insertmacro MoveFolder "$TEMP\MPDN_Extensions-master\Extensions\" "$INSTDIR\Extensions\" "*.*"
 
 SectionEnd
 
@@ -271,6 +280,7 @@ Function .onInit
 	StrCmp $R0 0 +3
 		MessageBox MB_OK "The installer is already running."
 		Abort
+	StrCpy $switch_overwrite 0
 	
 	${GetParameters} $R0
 	ClearErrors
@@ -336,6 +346,7 @@ Section -post
 	File "icon.ico"
 	Delete $TEMP\Mpdn.zip
 	Delete $TEMP\Mpdn_Extensions.zip
+	Delete $TEMP\MPDN_Extensions-master
 
 	; Store install folder in registry
 	WriteRegStr HKLM "SOFTWARE\${PROJECT_NAME}" "" "$INSTDIR"
