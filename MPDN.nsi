@@ -48,6 +48,9 @@ SetCompressor lzma
 Var /GLOBAL switch_overwrite
 !include 'MoveFileFolder.nsh'
 
+; Windows version check
+!include WinVer.nsh
+
 
 ;--------------------------------
 ;Configuration
@@ -285,6 +288,11 @@ Function .onInit
 	${GetParameters} $R0
 	ClearErrors
 	Call AbortIfBadFramework
+	
+	${IfNot} ${AtLeastWin7}
+		MessageBox MB_OK "Windows Seven and above required"
+		Quit
+	${EndIf}
 	
 	!insertmacro SelectByParameter ${SecMPDN} SELECT_MPDN 1
 	!insertmacro SelectByParameter ${SecExtensions} SELECT_EXTENSIONS 1
