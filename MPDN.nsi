@@ -212,7 +212,7 @@ Section /o "${PROJECT_NAME}: The Player" SecMPDN
 
 	SetOutPath "$TEMP"
 	
-	File "/oname=Mpdn.zip" "MPDN\${ARCH}.zip"		
+	File "/oname=Mpdn.zip" "MPDN\MediaPlayerDotNet_${ARCH}*.zip"		
 			
 	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn.zip" "$INSTDIR" "<ALL>"
 	SetOutPath "$INSTDIR"
