@@ -47,7 +47,7 @@ SetCompressor lzma
 ;General
 
 ; Package name as shown in the installer GUI
-Name "${PROJECT_NAME} ${VERSION_STRING}"
+Name "${PROJECT_NAME} ${ARCH} ${VERSION_STRING}"
 
 ; On 64-bit Windows the constant $PROGRAMFILES defaults to
 ; C:\Program Files (x86) and on 32-bit Windows to C:\Program Files. However,
@@ -56,7 +56,7 @@ Name "${PROJECT_NAME} ${VERSION_STRING}"
 InstallDir "$PROGRAMFILES\${PROJECT_NAME}"
 
 ; Installer filename
-OutFile "${PROJECT_NAME}_Installer.exe"
+OutFile "${PROJECT_NAME}_${ARCH}_Installer.exe"
 
 ShowInstDetails show
 ShowUninstDetails show
@@ -200,11 +200,9 @@ Section /o "${PROJECT_NAME}: The Player" SecMPDN
 	SetOverwrite on
 
 	SetOutPath "$TEMP"
-	${If} ${RunningX64}
-		File "/oname=Mpdn.zip" "MPDN\x64.zip"
-	${Else}
-		File "/oname=Mpdn.zip" "MPDN\x86.zip"
-	${EndIf}
+	
+	File "/oname=Mpdn.zip" "MPDN\${ARCH}.zip"		
+			
 	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn.zip" "$INSTDIR" "<ALL>"
 	SetOutPath "$INSTDIR"
 	File "MPDN\ChangeLog.txt"
@@ -222,7 +220,7 @@ Section /o "${PROJECT_NAME} Extensions" SecExtensions
 	
 	SetOutPath "$TEMP"
 	File "/oname=Mpdn_Extensions.zip" "MPDN\Extensions.zip"
-	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn_Extensions.zip" "$INSTDIR" "Extensions"
+	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn_Extensions.zip" "$INSTDIR" "MPDN_Extensions-master\Extensions"
 
 SectionEnd
 
@@ -241,10 +239,20 @@ SectionGroup "!Dependencies (Advanced)"
 
 		SetOverwrite on
 		SetOutPath "$INSTDIR\Pre-requisites"
-		${If} ${RunningX64}		
-			File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x64.dll"
-		${Else}
-			File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x86.dll"
+		${If} "${ARCH}" == "AnyCPU"
+			${If} ${RunningX64}		
+				File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x64.dll"
+			${Else}
+				File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x86.dll"
+			${EndIf}
+		${EndIf}
+		
+		${If} "${ARCH}" == "x64"	
+				File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x64.dll"				
+		${EndIf}
+		
+		${If} "${ARCH}" == "x86"	
+				File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x86.dll"				
 		${EndIf}
 		; Don't work ...
 		;RegDLL "$INSTDIR\Pre-requisites\XySubFilter.dll"
@@ -277,19 +285,29 @@ Function .onInit
 	!insertmacro MULTIUSER_INIT
 	SetShellVarContext all
 
-
-	${If} ${RunningX64}
-	
+	; Check if the installer was built for x86_64
+	${If} "${ARCH}" == "x64"
+		${IfNot} ${RunningX64}
+			; User is running 64 bit installer on 32 bit OS
+			MessageBox MB_OK|MB_ICONEXCLAMATION "This installer is designed to run only on 64-bit systems."
+			Quit
+		${EndIf}
+		
+set64Values:
 		SetRegView 64
 
 		; Change the installation directory to C:\Program Files, but only if the
 		; user has not provided a custom install location.
-		${If} "$INSTDIR" == "$PROGRAMFILES\${PROJECT_NAME}"
-			StrCpy $INSTDIR "$PROGRAMFILES64\${PROJECT_NAME}"
+		${If} "$INSTDIR" == "$PROGRAMFILES\${PACKAGE_NAME}"
+			StrCpy $INSTDIR "$PROGRAMFILES64\${PACKAGE_NAME}"
+		${EndIf}
+	${Else}
+		${If} "${ARCH}" == "AnyCPU"
+			${If} ${RunningX64}
+				GoTo set64Values
+			${EndIf}
 		${EndIf}
 	${EndIf}
-
-
 FunctionEnd
 
 ;--------------------------------
