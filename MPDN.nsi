@@ -189,8 +189,8 @@ Section -pre
 		StrCpy $strMpdnKilled "1"
 
 	mpdnNotRunning:	
-			; Delete previous start menu folder
-		RMDir /r "$SMPROGRAMS\${PROJECT_NAME}"
+		; Delete previous start menu folder
+		RMDir /r "$SMPROGRAMS\${PROJECT_NAME}"		
 
 SectionEnd
 
@@ -217,9 +217,12 @@ SectionEnd
 Section /o "${PROJECT_NAME} Extensions" SecExtensions
 
 	SetOverwrite on
+	; Delete previous Extensions directory to avoid any conflict
+	RMDir /r "$INSTDIR\Extensions"
+	
 	SetOutPath "$TEMP"
 	File "/oname=Mpdn_Extensions.zip" "MPDN\Extensions.zip"
-	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn_Extensions.zip" "$INSTDIR" "<ALL>"
+	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn_Extensions.zip" "$INSTDIR" "Extensions"
 
 SectionEnd
 
