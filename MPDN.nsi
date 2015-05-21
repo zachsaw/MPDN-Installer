@@ -298,8 +298,8 @@ set64Values:
 
 		; Change the installation directory to C:\Program Files, but only if the
 		; user has not provided a custom install location.
-		${If} "$INSTDIR" == "$PROGRAMFILES\${PACKAGE_NAME}"
-			StrCpy $INSTDIR "$PROGRAMFILES64\${PACKAGE_NAME}"
+		${If} "$INSTDIR" == "$PROGRAMFILES\${PROJECT_NAME}"
+			StrCpy $INSTDIR "$PROGRAMFILES64\${PROJECT_NAME}"
 		${EndIf}
 	${Else}
 		${If} "${ARCH}" == "AnyCPU"
