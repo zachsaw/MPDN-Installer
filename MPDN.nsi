@@ -277,7 +277,12 @@ SectionGroupEnd
 ;--------------------------------
 ;Installer Sections
 
-Function .onInit
+Function .onInit	
+	${IfNot} ${AtLeastWin7}
+		MessageBox MB_OK "Windows Seven and above required"
+		Quit
+	${EndIf}
+	
 	System::Call 'kernel32::CreateMutex(i 0, i 0, t "myMutex") ?e'
 	Pop $R0
 	StrCmp $R0 0 +3
@@ -288,11 +293,6 @@ Function .onInit
 	${GetParameters} $R0
 	ClearErrors
 	Call AbortIfBadFramework
-	
-	${IfNot} ${AtLeastWin7}
-		MessageBox MB_OK "Windows Seven and above required"
-		Quit
-	${EndIf}
 	
 	!insertmacro SelectByParameter ${SecMPDN} SELECT_MPDN 1
 	!insertmacro SelectByParameter ${SecExtensions} SELECT_EXTENSIONS 1
