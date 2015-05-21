@@ -233,8 +233,8 @@ SectionGroup "!Dependencies (Advanced)"
 
 		SetOverwrite on
 		SetOutPath "$INSTDIR\Pre-requisites"
-		File "Pre-requisites\LAVFilters-0.65-Installer.exe"
-		ExecWait "$INSTDIR\Pre-requisites\LAVFilters-0.65-Installer.exe"
+		File "Pre-requisites\LAVFilters-Installer.exe"
+		ExecWait "$INSTDIR\Pre-requisites\LAVFilters-Installer.exe"
 	SectionEnd
 
 	Section /o "XySubFilter DLLs" SecXySubFilter
