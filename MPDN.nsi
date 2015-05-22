@@ -58,7 +58,7 @@ Var /GLOBAL switch_overwrite
 ;General
 
 ; Package name as shown in the installer GUI
-Name "${PROJECT_NAME} ${ARCH} ${VERSION_STRING}"
+Name "${PROJECT_NAME} ${ARCH} v${VER_MAJOR}.${VER_MINOR}.${VER_BUILD}"
 
 ; On 64-bit Windows the constant $PROGRAMFILES defaults to
 ; C:\Program Files (x86) and on 32-bit Windows to C:\Program Files. However,
@@ -67,24 +67,25 @@ Name "${PROJECT_NAME} ${ARCH} ${VERSION_STRING}"
 InstallDir "$PROGRAMFILES\${PROJECT_NAME}"
 
 ; Installer filename
-OutFile "${PROJECT_NAME}_${ARCH}_Installer.exe"
+OutFile "${PROJECT_NAME}_${ARCH}_${VER_MAJOR}_${VER_MINOR}_${VER_BUILD}_${VER_REV}_Installer.exe"
 
 ShowInstDetails show
 ShowUninstDetails show
 
 ;Remember install folder
-InstallDirRegKey HKLM "SOFTWARE\${PROJECT_NAME}" ""
+InstallDirRegKey HKLM "SOFTWARE\${PROJECT_NAME}_${ARCH}" ""
 
 ;--------------------------------
 ;Modern UI Configuration
 
 ; Compile-time constants which we'll need during install
-!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of ${PROJECT_NAME} ${SPECIAL_BUILD}, a MediaPlayer made by Zach Saw. Render Script made by Shiandrow. Installer by Antoine Aflalo.$\r$\n$\r$\nNote that the Windows version of ${PROJECT_NAME} will only run on Windows Seven, or higher.$\r$\n$\r$\n$\r$\n"
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of ${PROJECT_NAME}${SPECIAL_BUILD}.$\r$\n$\r$\nInstaller by Antoine Aflalo."
 
 !define MUI_COMPONENTSPAGE_TEXT_TOP "Select the components to install/upgrade.  Stop any ${PROJECT_NAME} processes.  All DLLs are installed locally."
 
 !define MUI_COMPONENTSPAGE_SMALLDESC
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\ChangeLog.txt"
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "Show Changelog"
 !define MUI_FINISHPAGE_RUN_TEXT "Start ${PROJECT_NAME}"
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${PROJECT_NAME}.exe"
 !define MUI_FINISHPAGE_RUN_NOTCHECKED
@@ -124,7 +125,7 @@ LangString DESC_SecLAVFilter ${LANG_ENGLISH} "Install LAV Splitter/Decoder (may 
 
 LangString DESC_SecXySubFilter ${LANG_ENGLISH} "Install XySubFilter (may be omitted if already installed)."
 
-LangString DESC_SecExtensions ${LANG_ENGLISH} "Install the Extensions. It contains the different Renderers and Player Extensions."
+LangString DESC_SecExtensions ${LANG_ENGLISH} "Install the Extensions. It contains the Render Scripts and Player Extensions."
 
 ;--------------------------------
 ;Reserve Files
@@ -174,7 +175,7 @@ ReserveFile "install-whirl.bmp"
 Section -pre
 	${nsProcess::FindProcess} "MediaPlayerDotNet.exe" $R0
 	${If} $R0 == 0
-		MessageBox MB_YESNO|MB_ICONEXCLAMATION "To perform the specified operation, ${PROJECT_NAME} needs to be closed. Shall I close it?" /SD IDYES IDNO guiEndNo
+		MessageBox MB_YESNO|MB_ICONEXCLAMATION "To perform the specified operation, ${PROJECT_NAME} needs to be closed.$\r$\n$\r$\nClose it now?" /SD IDYES IDNO guiEndNo
 		DetailPrint "Closing ${PROJECT_NAME}..."
 		Goto guiEndYes
 	${Else}
@@ -202,17 +203,18 @@ Section -pre
 	mpdnNotRunning:	
 		; Delete previous start menu folder
 		RMDir /r "$SMPROGRAMS\${PROJECT_NAME}"		
+        Delete "$DESKTOP\${PROJECT_NAME} ${ARCH}.lnk"
 
 SectionEnd
 
 
-Section /o "${PROJECT_NAME}: The Player" SecMPDN
+Section /o "Player" SecMPDN
 
 	SetOverwrite on
 
 	SetOutPath "$TEMP"
 	
-	File "/oname=Mpdn.zip" "MPDN\MediaPlayerDotNet_${ARCH}*.zip"		
+	File "/oname=Mpdn.zip" "MPDN\MediaPlayerDotNet_${ARCH}_${VER_MAJOR}_${VER_MINOR}_${VER_BUILD}_${VER_REV}.zip"		
 			
 	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn.zip" "$INSTDIR" "<ALL>"
 	SetOutPath "$INSTDIR"
@@ -221,9 +223,10 @@ Section /o "${PROJECT_NAME}: The Player" SecMPDN
 	${registerExtension} "$INSTDIR\MediaPlayerDotNet.exe" ".avi" "MPDN_AVI_FILE"
 	${registerExtension} "$INSTDIR\MediaPlayerDotNet.exe" ".mp4" "MPDN_MP4_FILE"
 
+    CreateShortCut "$DESKTOP\${PROJECT_NAME} ${ARCH}.lnk" "$INSTDIR\${PROJECT_NAME}.exe" ""
 SectionEnd
 
-Section /o "${PROJECT_NAME} Extensions" SecExtensions
+Section /o "Extensions" SecExtensions
 
 	SetOverwrite on
 	; Delete previous Extensions directory to avoid any conflict
@@ -274,7 +277,7 @@ SectionGroupEnd
 
 Function .onInit	
 	${IfNot} ${AtLeastWin7}
-		MessageBox MB_OK "Windows Seven and above required"
+		MessageBox MB_OK "Windows 7 and above required"
 		Quit
 	${EndIf}
 	
@@ -284,8 +287,8 @@ Function .onInit
 		MessageBox MB_OK "The installer is already running."
 		Abort
 	StrCpy $switch_overwrite 0
-	
-	${GetParameters} $R0
+    
+    ${GetParameters} $R0
 	ClearErrors
 	Call AbortIfBadFramework
 	
@@ -321,6 +324,26 @@ set64Values:
 			${EndIf}
 		${EndIf}
 	${EndIf}
+    
+    ReadRegStr $R0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}_${ARCH}" "UninstallString"
+    StrCmp $R0 "" done
+
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+    "${PROJECT_NAME} ${ARCH} is already installed. $\n$\nClick `OK` to remove the \
+    previous version or `Cancel` to cancel this upgrade." \
+    IDOK uninst
+    Abort
+	
+;Run the uninstaller
+uninst:
+    ClearErrors
+    ExecWait '$R0 _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
+
+    IfErrors no_remove_uninstaller done
+    no_remove_uninstaller:
+        Abort
+done:
+ 
 FunctionEnd
 
 ;--------------------------------
@@ -352,16 +375,16 @@ Section -post
 	Delete $TEMP\MPDN_Extensions-master
 
 	; Store install folder in registry
-	WriteRegStr HKLM "SOFTWARE\${PROJECT_NAME}" "" "$INSTDIR"
+	WriteRegStr HKLM "SOFTWARE\${PROJECT_NAME}_${ARCH}" "" "$INSTDIR"
 
 	; Create uninstaller
 	WriteUninstaller "$INSTDIR\Uninstall.exe"
 
 	; Show up in Add/Remove programs
-	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "DisplayName" "${PROJECT_NAME} ${ARCH} ${VERSION_STRING} ${SPECIAL_BUILD}"
-	WriteRegExpandStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "UninstallString" "$INSTDIR\Uninstall.exe"
-	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "DisplayIcon" "$INSTDIR\icon.ico"
-	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}" "DisplayVersion" "${VERSION_STRING}"
+	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}_${ARCH}" "DisplayName" "${PROJECT_NAME} ${ARCH} v${VER_MAJOR}.${VER_MINOR}.${VER_BUILD} ${SPECIAL_BUILD}"
+	WriteRegExpandStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}_${ARCH}" "UninstallString" "$INSTDIR\Uninstall.exe"
+	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}_${ARCH}" "DisplayIcon" "$INSTDIR\icon.ico"
+	WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}_${ARCH}" "DisplayVersion" "${VER_MAJOR}.${VER_MINOR}.${VER_BUILD}"
 
 SectionEnd
 
@@ -419,10 +442,10 @@ Section "Uninstall"
 	RMDir /r "$INSTDIR\Extensions"
 	RMDir /r $INSTDIR
 	RMDir /r "$SMPROGRAMS\${PROJECT_NAME}"
+    Delete "$DESKTOP\${PROJECT_NAME} ${ARCH}.lnk"
 
-	DeleteRegKey HKCR "${PROJECT_NAME}File"
-	DeleteRegKey HKLM "SOFTWARE\${PROJECT_NAME}"
-	DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}"
+	DeleteRegKey HKLM "SOFTWARE\${PROJECT_NAME}_${ARCH}"
+	DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}_${ARCH}"
 	
 	${unregisterExtension} ".mkv" "MPDN_MKV_FILE"
 	${unregisterExtension} ".avi" "MPDN_AVI_FILE"
