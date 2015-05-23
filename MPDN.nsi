@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; * Copyright (C) 2002-2010 OpenVPN Technologies, Inc.                       *
 ; * Copyright (C)      2012 Alon Bar-Lev <alon.barlev@gmail.com>             *
-; * Modified for ${PROJECT_NAME} by
+; * Modified for MediaPlayerDotNet by
 ; * Copyright (C)      2015 Antoine Aflalo <antoine@aaflalo.me>              *
 ; *  This program is free software; you can redistribute it and/or modify    *
 ; *  it under the terms of the GNU General Public License version 2          *
@@ -105,11 +105,15 @@ InstallDirRegKey HKLM "SOFTWARE\${PROJECT_NAME}_${ARCH}" ""
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW StartGUI.show
 !insertmacro MUI_PAGE_FINISH
 
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW un.ModifyUnWelcome
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE un.LeaveUnWelcome
+!insertmacro MUI_UNPAGE_WELCOME
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
 Var /Global strMpdnKilled ; Track if GUI was killed so we can tick the checkbox to start it upon installer finish
+Var /Global removeLocalData ; Trak if the user want to remove the local data also
 
 ;--------------------------------
 ;Languages
@@ -401,6 +405,22 @@ SectionEnd
 ;--------------------------------
 ;Uninstaller Section
 
+Function un.ModifyUnWelcome
+	${NSD_CreateCheckbox} 120u -18u 50% 12u "Remove ${PROJECT_NAME} Configuration files"
+	Pop $removeLocalData
+	SetCtlColors $removeLocalData "" ${MUI_BGCOLOR}
+	;${NSD_Check} $mycheckbox ; Check it by default
+FunctionEnd
+
+Function un.LeaveUnWelcome
+	${NSD_GetState} $removeLocalData $0
+	${If} $0 <> 0
+		StrCpy $removeLocalData "1"
+	${Else}
+		StrCpy $removeLocalData "0"
+	${EndIf}
+FunctionEnd
+
 Function un.onInit
 	ClearErrors
 	!insertmacro MULTIUSER_UNINIT
@@ -438,6 +458,24 @@ Section "Uninstall"
 	Delete "$INSTDIR\icon.ico"
 	Delete "$INSTDIR\Uninstall.exe"
 	Delete "$INSTDIR\ChangeLog.txt"
+	
+	${If} $removeLocalData == "1"
+		Pop $1
+		${If} ${ARCH} == "x64"
+			StrCpy $1 "64"
+		${Else}
+			${If} ${ARCH} == "x86"
+				StrCpy $1 "86"
+			${Else}
+				StrCpy $1 "${ARCH}"
+			${EndIf}
+		${EndIf}
+		Delete "$LOCALAPPDATA\${PROJECT_NAME}\Application.$1.config"
+		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\PlayerExtensions.$1"
+		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\RenderScripts.$1"
+		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\ScriptAsmCache.$1"
+		RMDir "$LOCALAPPDATA\${PROJECT_NAME}" ; Delete the directory ONLY if empty
+	${EndIf}
 
 	RMDir /r "$INSTDIR\Extensions"
 	RMDir /r $INSTDIR
