@@ -473,7 +473,8 @@ Section "Uninstall"
 		Delete "$LOCALAPPDATA\${PROJECT_NAME}\Application.$1.config"
 		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\PlayerExtensions.$1"
 		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\RenderScripts.$1"
-		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\ScriptAsmCache.$1"		
+		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\ScriptAsmCache.$1"
+		RMDir "$LOCALAPPDATA\${PROJECT_NAME}" ; Delete the directory ONLY if empty
 	${EndIf}
 
 	RMDir /r "$INSTDIR\Extensions"
