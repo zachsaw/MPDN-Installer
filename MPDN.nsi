@@ -223,9 +223,9 @@ Section /o "Player" SecMPDN
 	!insertmacro ZIPDLL_EXTRACT "$TEMP\Mpdn.zip" "$INSTDIR" "<ALL>"
 	SetOutPath "$INSTDIR"
 	File "MPDN\ChangeLog.txt"
-	${registerExtension} "$INSTDIR\MediaPlayerDotNet.exe" ".mkv" "MPDN_MKV_FILE"
-	${registerExtension} "$INSTDIR\MediaPlayerDotNet.exe" ".avi" "MPDN_AVI_FILE"
-	${registerExtension} "$INSTDIR\MediaPlayerDotNet.exe" ".mp4" "MPDN_MP4_FILE"
+	${registerExtension} "$INSTDIR\MediaPlayerDotNet.exe" ".mkv" "${PROJECT_NAME} mkv Video File"
+	${registerExtension} "$INSTDIR\MediaPlayerDotNet.exe" ".avi" "${PROJECT_NAME} avi Video File"
+	${registerExtension} "$INSTDIR\MediaPlayerDotNet.exe" ".mp4" "${PROJECT_NAME} mp4 Video File"
 
     CreateShortCut "$DESKTOP\${PROJECT_NAME} ${ARCH}.lnk" "$INSTDIR\${PROJECT_NAME}.exe" ""
 SectionEnd
@@ -485,9 +485,9 @@ Section "Uninstall"
 	DeleteRegKey HKLM "SOFTWARE\${PROJECT_NAME}_${ARCH}"
 	DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}_${ARCH}"
 	
-	${unregisterExtension} ".mkv" "MPDN_MKV_FILE"
-	${unregisterExtension} ".avi" "MPDN_AVI_FILE"
-	${unregisterExtension} ".mp4" "MPDN_MP4_FILE"
+	${unregisterExtension} ".mkv" "${PROJECT_NAME} mkv Video File"
+	${unregisterExtension} ".avi" "${PROJECT_NAME} avi Video File"
+	${unregisterExtension} ".mp4" "${PROJECT_NAME} mp4 Video File"
 
 SectionEnd
 
