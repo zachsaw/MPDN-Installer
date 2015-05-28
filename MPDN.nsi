@@ -474,11 +474,13 @@ Section "Uninstall"
 		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\PlayerExtensions.$1"
 		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\RenderScripts.$1"
 		RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\ScriptAsmCache.$1"
+        RMDir /r "$LOCALAPPDATA\${PROJECT_NAME}\ShaderCache.$1"
+        RMDir "$LOCALAPPDATA\MediaPlayerDotNet.exe.dump"
 		RMDir "$LOCALAPPDATA\${PROJECT_NAME}" ; Delete the directory ONLY if empty
 	${EndIf}
 
 	RMDir /r "$INSTDIR\Extensions"
-	RMDir /r $INSTDIR
+	RMDir /r "$INSTDIR"
 	RMDir /r "$SMPROGRAMS\${PROJECT_NAME}"
     Delete "$DESKTOP\${PROJECT_NAME} ${ARCH}.lnk"
 
