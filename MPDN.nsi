@@ -545,12 +545,12 @@ Section "Uninstall"
     ${EndIf}
     
     ; Stop exe if currently running
-    DetailPrint "Stopping ${PROJECT_NAME}..."
+    DetailPrint "Stopping ${PROJECT_NAME_LONG}..."
     StopGUI:
     
-    ${nsProcess::FindProcess} "MediaPlayerDotNet.exe" $R0
+    ${nsProcess::FindProcess} "${PROJECT_NAME}.exe" $R0
     ${If} $R0 == 0
-        ${nsProcess::KillProcess} "MediaPlayerDotNet.exe" $R0
+        ${nsProcess::KillProcess} "${PROJECT_NAME}.exe" $R0
     ${Else}
         Goto guiClosed
     ${EndIf}
