@@ -45,7 +45,6 @@ SetCompressor lzma
 !insertmacro GetParent
  
 Var /GLOBAL switch_overwrite
-!include 'MoveFileFolder.nsh'
 
 ; Windows version check
 !include WinVer.nsh
