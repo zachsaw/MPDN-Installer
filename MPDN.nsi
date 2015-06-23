@@ -35,6 +35,9 @@ SetCompressor lzma
 ; File Associations
 !include "FileAssociation.nsh"
 
+; Replacing in File
+!include "ReplaceInFile.nsh"
+
 ; Read the command-line parameters
 !insertmacro GetParameters
 !insertmacro GetOptions
@@ -321,6 +324,23 @@ SectionGroup "!Dependencies (Advanced)"
         SetOutPath "$INSTDIR\Filters"
         File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.${ARCH}.dll"               
         ExecWait '"$SYSDIR\regsvr32.exe" /s "$INSTDIR\Filters\XySubFilter.dll"' 
+        IfFileExists "$LOCALAPPDATA\${PROJECT_NAME}\Application.${ARCH}.config" ModifyConfiguration InstallConf
+        
+        ModifyConfiguration:
+			!insertmacro _ReplaceInFile "$LOCALAPPDATA\${PROJECT_NAME}\Application.${ARCH}.config" "<UseXySubFilter>False</UseXySubFilter>" "<UseXySubFilter>True</UseXySubFilter>"
+        goto endXy
+		
+		InstallConf:
+		FileOpen $9 $LOCALAPPDATA\${PROJECT_NAME}\Application.${ARCH}.config w
+		FileWrite $9 '<Configuration xmlns:yaxlib="http://www.sinairv.com/yaxlib/">$\r$\n'
+		FileWrite $9 "<DirectShowSettings>$\r$\n"
+		FileWrite $9 "<LoadSubtitles>True</LoadSubtitles>$\r$\n"
+		FileWrite $9 "<UseXySubFilter>True</UseXySubFilter>$\r$\n"
+		FileWrite $9 "</DirectShowSettings>$\r$\n"
+		FileWrite $9 "</Configuration>"
+		FileClose $9
+		
+		endXy:
 
     SectionEnd
 
