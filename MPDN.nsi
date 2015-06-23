@@ -35,6 +35,9 @@ SetCompressor lzma
 ; File Associations
 !include "FileAssociation.nsh"
 
+; Replacing in File
+!include "ReplaceInFile.nsh"
+
 ; Read the command-line parameters
 !insertmacro GetParameters
 !insertmacro GetOptions
@@ -42,7 +45,6 @@ SetCompressor lzma
 !insertmacro GetParent
  
 Var /GLOBAL switch_overwrite
-!include 'MoveFileFolder.nsh'
 
 ; Windows version check
 !include WinVer.nsh
@@ -319,17 +321,28 @@ SectionGroup "!Dependencies (Advanced)"
 
         SetOverwrite on
         SetOutPath "$INSTDIR\Filters"
-        ${If} "${ARCH}" == "AnyCPU"
-            ${If} ${RunningX64}        
-                File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x64.dll"
-            ${Else}
-                File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x86.dll"
-            ${EndIf}
-        ${Else}
-                File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.${ARCH}.dll"        
-        ${EndIf}
-        
+        File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.${ARCH}.dll"               
         ExecWait '"$SYSDIR\regsvr32.exe" /s "$INSTDIR\Filters\XySubFilter.dll"' 
+        IfFileExists "$LOCALAPPDATA\${PROJECT_NAME}\Application.${ARCH}.config" ModifyConfiguration InstallConf
+        
+        ModifyConfiguration:
+			!insertmacro _ReplaceInFile "$LOCALAPPDATA\${PROJECT_NAME}\Application.${ARCH}.config" "<UseXySubFilter>False</UseXySubFilter>" "<UseXySubFilter>True</UseXySubFilter>"
+        goto endXy
+		
+		InstallConf:
+			IfFileExists "$LOCALAPPDATA\${PROJECT_NAME}" GenerateFile CreateDir
+			CreateDir:
+				CreateDirectory $LOCALAPPDATA\${PROJECT_NAME}
+			GenerateFile:
+				FileOpen $9 $LOCALAPPDATA\${PROJECT_NAME}\Application.${ARCH}.config w
+				FileWrite $9 '<Configuration xmlns:yaxlib="http://www.sinairv.com/yaxlib/">$\r$\n'
+				FileWrite $9 "<DirectShowSettings>$\r$\n"
+				FileWrite $9 "<LoadSubtitles>True</LoadSubtitles>$\r$\n"
+				FileWrite $9 "<UseXySubFilter>True</UseXySubFilter>$\r$\n"
+				FileWrite $9 "</DirectShowSettings>$\r$\n"
+				FileWrite $9 "</Configuration>"
+				FileClose $9		
+		endXy:
 
     SectionEnd
 
@@ -344,7 +357,7 @@ Function .onInit
         Quit
     ${EndIf}
     
-    System::Call 'kernel32::CreateMutex(i 0, i 0, t "myMutex") ?e'
+    System::Call 'kernel32::CreateMutex(i 0, i 0, t "MpdnInstaller") ?e'
     Pop $R0
     StrCmp $R0 0 +3
         MessageBox MB_OK "The installer is already running."
@@ -387,7 +400,6 @@ Function .onInit
     StrCmp $R0 "" done
     IfFileExists "$R0" 0 done
 
-uninst:
     ; Set InstDir to current install dir
     ${GetParent} $R0 $R1
     StrCpy $INSTDIR "$R1"
@@ -436,8 +448,8 @@ Function DirectoryGUI.show
     ${EndIf}
 FunctionEnd
 
-Function DirectoryGUI.leave
-FunctionEnd
+; Function DirectoryGUI.leave
+; FunctionEnd
 
 Function StartGUI.show
     ; if we killed the GUI to do the install/upgrade, automatically tick the "Start GUI" option
@@ -453,7 +465,6 @@ Section -post
 
     SetOverwrite on
     SetOutPath "$INSTDIR"
-    Delete $TEMP\Mpdn.zip
 
     ; Store install folder in registry
     WriteRegStr HKLM "SOFTWARE\${PROJECT_NAME}_${ARCH}" "" "$INSTDIR"
@@ -534,12 +545,12 @@ Section "Uninstall"
     ${EndIf}
     
     ; Stop exe if currently running
-    DetailPrint "Stopping ${PROJECT_NAME}..."
+    DetailPrint "Stopping ${PROJECT_NAME_LONG}..."
     StopGUI:
     
-    ${nsProcess::FindProcess} "MediaPlayerDotNet.exe" $R0
+    ${nsProcess::FindProcess} "${PROJECT_NAME}.exe" $R0
     ${If} $R0 == 0
-        ${nsProcess::KillProcess} "MediaPlayerDotNet.exe" $R0
+        ${nsProcess::KillProcess} "${PROJECT_NAME}.exe" $R0
     ${Else}
         Goto guiClosed
     ${EndIf}
@@ -547,13 +558,13 @@ Section "Uninstall"
 
     guiClosed:
 
-    IfFileExists "$INSTDIR\Pre-requisites\XySubFilter.dll" UnRegXy XyNotInstalled
+    IfFileExists "$INSTDIR\Filters\XySubFilter.dll" UnRegXy XyNotInstalled
     
     UnRegXy:
     ; Don't works
     ;UnRegDLL "$INSTDIR\Pre-requisites\XySubFilter.dll"
-    ExecWait '"$SYSDIR\regsvr32.exe" /s /u "$INSTDIR\Pre-requisites\XySubFilter.dll"' 
-    Delete   "$INSTDIR\Pre-requisites\XySubFilter.dll"
+    ExecWait '"$SYSDIR\regsvr32.exe" /s /u "$INSTDIR\Filters\XySubFilter.dll"' 
+    Delete   "$INSTDIR\Filters\XySubFilter.dll"
     
     XyNotInstalled:
     Delete "$INSTDIR\Uninstall.exe"
