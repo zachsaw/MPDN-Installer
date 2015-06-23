@@ -464,7 +464,6 @@ Section -post
 
     SetOverwrite on
     SetOutPath "$INSTDIR"
-    Delete $TEMP\Mpdn.zip
 
     ; Store install folder in registry
     WriteRegStr HKLM "SOFTWARE\${PROJECT_NAME}_${ARCH}" "" "$INSTDIR"
