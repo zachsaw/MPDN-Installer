@@ -397,7 +397,6 @@ Function .onInit
     StrCmp $R0 "" done
     IfFileExists "$R0" 0 done
 
-uninst:
     ; Set InstDir to current install dir
     ${GetParent} $R0 $R1
     StrCpy $INSTDIR "$R1"
@@ -446,8 +445,8 @@ Function DirectoryGUI.show
     ${EndIf}
 FunctionEnd
 
-Function DirectoryGUI.leave
-FunctionEnd
+; Function DirectoryGUI.leave
+; FunctionEnd
 
 Function StartGUI.show
     ; if we killed the GUI to do the install/upgrade, automatically tick the "Start GUI" option
