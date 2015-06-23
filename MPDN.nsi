@@ -319,16 +319,7 @@ SectionGroup "!Dependencies (Advanced)"
 
         SetOverwrite on
         SetOutPath "$INSTDIR\Filters"
-        ${If} "${ARCH}" == "AnyCPU"
-            ${If} ${RunningX64}        
-                File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x64.dll"
-            ${Else}
-                File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.x86.dll"
-            ${EndIf}
-        ${Else}
-                File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.${ARCH}.dll"        
-        ${EndIf}
-        
+        File "/oname=XySubFilter.dll" "Pre-requisites\XySubFilter.${ARCH}.dll"               
         ExecWait '"$SYSDIR\regsvr32.exe" /s "$INSTDIR\Filters\XySubFilter.dll"' 
 
     SectionEnd
