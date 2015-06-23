@@ -558,13 +558,13 @@ Section "Uninstall"
 
     guiClosed:
 
-    IfFileExists "$INSTDIR\Pre-requisites\XySubFilter.dll" UnRegXy XyNotInstalled
+    IfFileExists "$INSTDIR\Filters\XySubFilter.dll" UnRegXy XyNotInstalled
     
     UnRegXy:
     ; Don't works
     ;UnRegDLL "$INSTDIR\Pre-requisites\XySubFilter.dll"
-    ExecWait '"$SYSDIR\regsvr32.exe" /s /u "$INSTDIR\Pre-requisites\XySubFilter.dll"' 
-    Delete   "$INSTDIR\Pre-requisites\XySubFilter.dll"
+    ExecWait '"$SYSDIR\regsvr32.exe" /s /u "$INSTDIR\Filters\XySubFilter.dll"' 
+    Delete   "$INSTDIR\Filters\XySubFilter.dll"
     
     XyNotInstalled:
     Delete "$INSTDIR\Uninstall.exe"
