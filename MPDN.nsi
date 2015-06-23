@@ -330,15 +330,18 @@ SectionGroup "!Dependencies (Advanced)"
         goto endXy
 		
 		InstallConf:
-		FileOpen $9 $LOCALAPPDATA\${PROJECT_NAME}\Application.${ARCH}.config w
-		FileWrite $9 '<Configuration xmlns:yaxlib="http://www.sinairv.com/yaxlib/">$\r$\n'
-		FileWrite $9 "<DirectShowSettings>$\r$\n"
-		FileWrite $9 "<LoadSubtitles>True</LoadSubtitles>$\r$\n"
-		FileWrite $9 "<UseXySubFilter>True</UseXySubFilter>$\r$\n"
-		FileWrite $9 "</DirectShowSettings>$\r$\n"
-		FileWrite $9 "</Configuration>"
-		FileClose $9
-		
+			IfFileExists "$LOCALAPPDATA\${PROJECT_NAME}" GenerateFile CreateDir
+			CreateDir:
+				CreateDirectory $LOCALAPPDATA\${PROJECT_NAME}
+			GenerateFile:
+				FileOpen $9 $LOCALAPPDATA\${PROJECT_NAME}\Application.${ARCH}.config w
+				FileWrite $9 '<Configuration xmlns:yaxlib="http://www.sinairv.com/yaxlib/">$\r$\n'
+				FileWrite $9 "<DirectShowSettings>$\r$\n"
+				FileWrite $9 "<LoadSubtitles>True</LoadSubtitles>$\r$\n"
+				FileWrite $9 "<UseXySubFilter>True</UseXySubFilter>$\r$\n"
+				FileWrite $9 "</DirectShowSettings>$\r$\n"
+				FileWrite $9 "</Configuration>"
+				FileClose $9		
 		endXy:
 
     SectionEnd
